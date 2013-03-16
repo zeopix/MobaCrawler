@@ -184,6 +184,7 @@ switch($level){
 				$hero = new Hero();
 				$hero->setLink($arrayHero[0][1]);
 				$hero->setName($arrayHero[0][0]);
+				$hero->setUpdatedAt(new \DateTime());
 				$entityManager->persist($hero);
 				$entityManager->flush();
 			}
@@ -201,6 +202,7 @@ switch($level){
 				if(!$rune){
 					$rune = new Rune();
 					$rune->setLink($type[0]);
+					$rune->setUpdatedAt(new \DateTime());
 					$entityManager->persist($rune);
 					$entityManager->flush();	
 				}
@@ -218,6 +220,7 @@ switch($level){
 				if(!$spell){
 					$spell = new Spell();
 					$spell->setLink($href[0]);
+					$spell->setUpdatedAt(new \DateTime());
 					$entityManager->persist($spell);
 					$entityManager->flush();	
 				}
@@ -235,6 +238,7 @@ switch($level){
 					if(!$item){
 						$item = new Item();
 						$item->setLink($link[0]);
+						$item->setUpdatedAt(new \DateTime());
 						$entityManager->persist($item);
 						$entityManager->flush();	
 					}
@@ -257,6 +261,7 @@ switch($level){
 						$ability = new Ability();
 						$ability->setHero($hero);
 						$ability->setLink($link[0]);
+						$ability->setUpdatedAt(new \DateTime());
 						$entityManager->persist($ability);
 						$entityManager->flush();	
 					}
@@ -282,6 +287,7 @@ switch($level){
 					if(!$mastery){
 						$mastery = new Mastery();
 						$mastery->setLink($link[0]);
+						$mastery->setUpdatedAt(new \DateTime());
 						$entityManager->persist($mastery);
 						$entityManager->flush();	
 					}
@@ -359,6 +365,32 @@ switch($level){
 		break;
 }
 
+//stats
+if($showMenu){
+
+	//remaining objects
+	$objects = Array('Item','Ability','Rune','Spell','Mastery','Hero');
+	$stats = Array();
+	foreach($objects as $object){
+		$prefix = "Documents\\";
+		$total = $entityManager->createQuery("SELECT COUNT(o.id) FROM ".$prefix.$object." o")->getSingleScalarResult();
+		$done = $entityManager->createQuery("SELECT COUNT(o.id) FROM ".$prefix.$object." o WHERE o.crawled=:crawled")->setParameter('crawled',true)->getSingleScalarResult();
+		$percent = round($done*100/$total);
+
+		$stats[$object] = Array(
+			'total' => $total,
+			'done' => $done,
+			'percent' => $percent
+		);
+
+	}	
+
+	//remaining builds
+	$total = $entityManager->createQuery('SELECT COUNT(l.id) FROM Documents\Link l')->getSingleScalarResult();
+	$done = $entityManager->createQuery('SELECT COUNT(l.id) FROM Documents\Link l WHERE l.status=:status')->setParameter('status',2)->getSingleScalarResult();
+	$percent = round($done*100/$total);
+
+}
 
 ?>
 <html>
@@ -378,11 +410,13 @@ window.location = '?level=<?php echo $target; ?>&page=<?php echo $page; ?>'
 <?php } ?>
 <ul>
 	<li><a href="?level=1">Scan Build List</a></li>
-	<li><a href="?level=2">Scan Builds</a></li>
-	<li><a href="?level=3">Scan Items</a></li>
-	<li><a href="?level=4">Scan Runes</a></li>
-	<li><a href="?level=5">Scan Mastery</a></li>
-	<li><a href="?level=5">Scan Abilities</a></li>
+	<li><span><?php echo $percent ?>% <small>(<?php echo $done ?>/<?php echo $total ?>)</small></span> <a href="?level=2">Scan Builds</a></li>
+	<li><span><?php echo $stats['Item']['percent'] ?>% <small>(<?php echo $stats['Item']['done'] ?>/<?php echo $stats['Item']['total'] ?>)</small></span> <a href="?level=3">Scan Items</a></li>
+	<li><span><?php echo $stats['Rune']['percent'] ?>% <small>(<?php echo $stats['Rune']['done'] ?>/<?php echo $stats['Rune']['total'] ?>)</small></span> <a href="?level=4">Scan Runes</a></li>
+	<li><span><?php echo $stats['Mastery']['percent'] ?>% <small>(<?php echo $stats['Mastery']['done'] ?>/<?php echo $stats['Mastery']['total'] ?>)</small></span> <a href="?level=5">Scan Mastery</a></li>
+	<li><span><?php echo $stats['Ability']['percent'] ?>% <small>(<?php echo $stats['Ability']['done'] ?>/<?php echo $stats['Ability']['total'] ?>)</small></span> <a href="?level=6">Scan Abilities</a></li>
+	<li><span><?php echo $stats['Spell']['percent'] ?>% <small>(<?php echo $stats['Spell']['done'] ?>/<?php echo $stats['Spell']['total'] ?>)</small></span> <a href="?level=7">Scan Spells</a></li>
+	<li><span><?php echo $stats['Hero']['percent'] ?>% <small>(<?php echo $stats['Hero']['done'] ?>/<?php echo $stats['Hero']['total'] ?>)</small></span> <a href="?level=8">Scan Heros</a></li>
 </ul>
 <?php } ?>
 </body>

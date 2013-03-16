@@ -27,8 +27,23 @@ class Hero
      */
      public $abilities;
 
+	/** @Column(type="datetime") **/
+    public $updated_at;
+
      /** @Column(type="string") **/
     public $link;
+
+     /** @Column(type="boolean") **/
+    public $crawled = false;
+
+
+	public function setCrawled($crawled){
+		$this->crawled = $crawled;
+		return $this;
+	}
+	public function getCrawled($crawled){
+		return $this->crawled;
+	}
 
 	public function setLink($link){
 		$this->link = $link;
@@ -44,6 +59,15 @@ class Hero
 	}
 	public function getName($name){
 		return $this->name;
+	}
+
+
+	public function setUpdatedAt($updated_at){
+		$this->updated_at = $updated_at;
+		return $this;
+	}
+	public function getUpdatedAt($updated_at){
+		return $this->updated_at;
 	}
 
     public function __construct() {

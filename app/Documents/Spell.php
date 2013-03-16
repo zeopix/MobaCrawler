@@ -23,7 +23,7 @@ class Spell
 	/** @Column(type="string",nullable=true) **/
     public $description;
 	
-	/** @Column(type="string",nullable=true) **/
+	/** @Column(type="datetime",nullable=true) **/
     public $updated_at;
 	
 	/** @Column(type="string",nullable=true) **/
