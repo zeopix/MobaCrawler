@@ -59,7 +59,7 @@ switch($level){
 		$hero->setSpeed($speed);
 		$hero->setManaRegen($mana_regen);
 		$hero->setArmor($armor);
-		$hero->setRange($range);
+		$hero->setAttackRange($range);
 		$hero->setResist($resist);
 		$hero->setRiotPoints($riot_points);
 		$hero->setInfluencePoints($influence_points);

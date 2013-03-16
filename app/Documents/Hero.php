@@ -47,7 +47,7 @@ class Hero
     public $mana_regen;
 
     /** @Column(type="float",nullable=true) **/
-    public $range;
+    public $attack_range;
 
 
     /** @Column(type="string",nullable=true) **/
@@ -353,9 +353,9 @@ class Hero
      * @param float $range
      * @return Hero
      */
-    public function setRange($range)
+    public function setAttackRange($range)
     {
-        $this->range = $range;
+        $this->attack_range = $range;
 
         return $this;
     }
@@ -365,9 +365,9 @@ class Hero
      *
      * @return float 
      */
-    public function getRange()
+    public function getAttackRange()
     {
-        return $this->range;
+        return $this->attack_range;
     }
     
 
