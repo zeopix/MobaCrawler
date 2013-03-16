@@ -38,6 +38,7 @@ switch($level){
 			break;
 		}
 
+		$title = trim($crawler->filter('.champ-info .champ-title')->text());
 		$health = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(0)->text());
 		$critical = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(1)->text());
 		$mana = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(2)->text());
@@ -48,6 +49,8 @@ switch($level){
 		$range = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(7)->text());
 		$resist = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(8)->text());
 
+		$image = $crawler->filter('.champ-wrap .champ-icon img')->extract(array('src'));
+
 		$riot_points = trim($crawler->filter('.box-blue .hiliteT')->eq(0)->text());
 		$influence_points = trim($crawler->filter('.box-blue .hiliteT')->eq(1)->text());
 		$tags = trim($crawler->filter('h1.champ-name span')->text());
@@ -57,6 +60,7 @@ switch($level){
 		$hero->setMana($mana);
 		$hero->setHealthRegen($health_regen);
 		$hero->setSpeed($speed);
+		$hero->setTitle($title);
 		$hero->setManaRegen($mana_regen);
 		$hero->setArmor($armor);
 		$hero->setAttackRange($range);
@@ -158,22 +162,26 @@ switch($level){
 			break;
 		}
 		$crawler = $client->request('GET', $baseUrl.$item->link);
+		$title = trim($crawler->filter('.col-left h1')->eq(0)->text());
+		if($title == "The page you are looking for is cowering in a corner somewhere"){
+			$item->setUpdatedAt(new \DateTime());
+			$item->setCrawled(true);
+		}else{
+			$name = $crawler->filter('.ability-info h2.hiliteW')->text();
+			$price = $crawler->filter('.ability-info .hiliteT')->eq(0)->text();
+			$rawDescription = $crawler->filter('.ability-info > p')->text();
+			$rawDescription2 = str_replace("Purchase Cost:","",$rawDescription);
+			$description = trim(str_replace($price,"",$rawDescription2));
+			$image = $crawler->filter('.item-info-image')->extract(array('src'));
+			$item->setImage($image[0]);
+			$item->setUpdatedAt(new \DateTime());
+			$item->setCrawled(true);
+			$item->setPrice($price);
+			$item->setDescription($description);
+		}
+			$entityManager->persist($item);
+			$entityManager->flush();
 		
-		$name = $crawler->filter('.ability-info h2.hiliteW')->text();
-		$price = $crawler->filter('.ability-info .hiliteT')->eq(0)->text();
-		$rawDescription = $crawler->filter('.ability-info > p')->text();
-		$rawDescription2 = str_replace("Purchase Cost:","",$rawDescription);
-		$description = trim(str_replace($price,"",$rawDescription2));
-		$image = $crawler->filter('.item-info-image')->extract(array('src'));
-		$item->setImage($image[0]);
-		$item->setUpdatedAt(new \DateTime());
-		$item->setCrawled(true);
-		$item->setPrice($price);
-		$item->setDescription($description);
-
-		$entityManager->persist($item);
-		$entityManager->flush();
-
 		break;
 
 	//Item

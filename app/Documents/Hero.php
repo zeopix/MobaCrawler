@@ -13,9 +13,12 @@ class Hero
 
     /** @Id @Column(type="integer") @GeneratedValue **/
     public $id;
-	
-	/** @Column(type="string") **/
+    
+    /** @Column(type="string") **/
     public $name;
+    
+    /** @Column(type="string") **/
+    public $title;
 
     /**
      * @OneToMany(targetEntity="Build", mappedBy="hero")
@@ -142,6 +145,13 @@ class Hero
 		return $this->name;
 	}
 
+    public function setTitle($title){
+        $this->title = $title;
+        return $this;
+    }
+    public function getTitle($title){
+        return $this->title;
+    }
 
 	public function setUpdatedAt($updated_at){
 		$this->updated_at = $updated_at;
