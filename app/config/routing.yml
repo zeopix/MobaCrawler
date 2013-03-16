@@ -1,5 +1,0 @@
-database_crawler:
-    resource: "@DatabaseCrawlerBundle/Controller/"
-    type:     annotation
-    prefix:   /
-
