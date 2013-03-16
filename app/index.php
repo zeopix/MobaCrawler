@@ -118,8 +118,6 @@ switch($level){
 		$ability->setCrawled(true);
 		$ability->setDescription($description);
 
-		die(print_r($description));
-
 		$entityManager->persist($ability);
 		$entityManager->flush();
 
