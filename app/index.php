@@ -6,24 +6,168 @@ use Goutte\Client;
 use Documents\Link;
 use Documents\Hero;
 use Documents\Build;
+use Documents\Rune;
+use Documents\Spell;
+use Documents\Item;
+use Documents\Mastery;
+use Documents\Ability;
 use Symfony\Component\DomCrawler\Crawler;
 
 $baseUrl = "http://www.mobafire.com";
 $client = new Client();
-
-
+$showMenu = false;
+$message = false;
 
 //Primera Oleada
 $_log = Array();
 $level = $_GET['level'];
 switch($level){
+	//Spells
+	case '7':
+		$target = 5;
+		//let's scan abilities
+		$spell = $entityManager->getRepository('Documents\Spell')->findOneBy(array('crawled' => false));
+		$crawler = $client->request('GET', $baseUrl.$spell->link);
+		if(!$spell){
+			$target = 0;
+			$showMenu = true;
+			$message = "Se acabaron las spells.";
+			break;
+		}
+		$name = $crawler->filter('.ability-info h2')->text();
+		$level = $crawler->filter('.ability-info .hiliteG')->text();
+		$rawDescription = $crawler->filter('.ability-info')->text();
+		$start = ($level > 9) ? 2 : 1;
+		$description = trim(substr(trim(str_replace("Level:","",$rawDescription)),$start));
+		$image = $crawler->filter('.item-info-image')->extract(array('src'));
+		$spell->setImage($image[0]);
+		$spell->setUpdatedAt(new \DateTime());
+		$spell->setCrawled(true);
+		$spell->setDescription($description);
+
+		die(print_r($description));
+
+		$entityManager->persist($ability);
+		$entityManager->flush();
+
+		break;
+	//Abilities
+	case '6':
+		$target = 5;
+		//let's scan abilities
+		$ability = $entityManager->getRepository('Documents\Ability')->findOneBy(array('crawled' => false));
+		$crawler = $client->request('GET', $baseUrl.$ability->link);
+		if(!$ability){
+			$target = 0;
+			$showMenu = true;
+			$message = "Se acabaron las habilidades.";
+			break;
+		}
+		$name = $crawler->filter('.ability-info h2')->text();
+		$description = $crawler->filter('.ability-info')->text();
+		$image = $crawler->filter('.item-info-image')->extract(array('src'));
+		$ability->setImage($image[0]);
+		$ability->setUpdatedAt(new \DateTime());
+		$ability->setCrawled(true);
+		$ability->setDescription($description);
+
+		die(print_r($description));
+
+		$entityManager->persist($ability);
+		$entityManager->flush();
+
+		break;
+	//Mastery
+	case '5':
+		$target = 5;
+		//let's scan runes
+		$mastery = $entityManager->getRepository('Documents\Mastery')->findOneBy(array('crawled' => false));
+		$crawler = $client->request('GET', $baseUrl.$mastery->link);
+		if(!$mastery){
+			$target = 0;
+			$showMenu = true;
+			$message = "Se acabaron las maestrias.";
+			break;
+		}
+		$name = $crawler->filter('.ability-info h2.hiliteW')->text();
+		$description = $crawler->filter('.ability-info > p')->text();
+		$image = $crawler->filter('.item-info-image')->extract(array('src'));
+		$mastery->setImage($image[0]);
+		$mastery->setUpdatedAt(new \DateTime());
+		$mastery->setCrawled(true);
+		$mastery->setDescription($description);
+
+		$entityManager->persist($mastery);
+		$entityManager->flush();
+
+		break;
+	//Runes
+	case '4':
+		$target = 4;
+		//let's scan runes
+		$item = $entityManager->getRepository('Documents\Rune')->findOneBy(array('crawled' => false));
+		if(!$item){
+			$target = 0;
+			$showMenu = true;
+			$message = "Se acabaron las runas.";
+			break;
+		}
+		$crawler = $client->request('GET', $baseUrl.$item->link);
+		
+		$name = $crawler->filter('.ability-info h2.hiliteW')->text();
+		$price = $crawler->filter('.ability-info .hiliteT')->eq(0)->text();
+		$rawDescription = $crawler->filter('.ability-info > p')->text();
+		$rawDescription2 = str_replace("Purchase Cost:","",$rawDescription);
+		$description = trim(str_replace($price,"",$rawDescription2));
+		$image = $crawler->filter('.item-info-image')->extract(array('src'));
+		$item->setImage($image[0]);
+		$item->setUpdatedAt(new \DateTime());
+		$item->setCrawled(true);
+		$item->setPrice($price);
+		$item->setDescription($description);
+
+		$entityManager->persist($item);
+		$entityManager->flush();
+
+		break;
+
+	//Item
+	case '3':
+		$target = 3;
+		//let's scan items
+		$item = $entityManager->getRepository('Documents\Item')->findOneBy(array('crawled' => false));
+		$crawler = $client->request('GET', $baseUrl.$item->link);
+		if(!$item){
+			$target = 0;
+			$showMenu = true;
+			$message = "Se acabaron los items.";
+			break;
+		}
+
+		$name = $crawler->filter('.item-info h2')->text();
+		$total_price = $crawler->filter('.item-info .hiliteT')->eq(0)->text();
+		$recipe_price = $crawler->filter('.item-info .hiliteT')->eq(1)->text();
+		$description = $crawler->filter('.item-info > p')->eq(2)->text();
+		$image = $crawler->filter('.item-info-image')->extract(array('src'));
+
+		$item->setImage($image[0]);
+		$item->setUpdatedAt(new \DateTime());
+		$item->setCrawled(true);
+		$item->setTotalPrice($total_price);
+		$item->setRecipePrice($recipe_price);
+		$item->setDescription($description);
+
+		$entityManager->persist($item);
+		$entityManager->flush();
+
+		break;
 	//paso 2, hacemos las builds, e indexamos todo
 	case '2':
 		$target = 2;
 		$row = $entityManager->getRepository('Documents\Link')->findOneBy(array('status' => 1,'level'=>1));
 		if(!$row){
-			die("hi world");
-			//$target = 3;
+			$message = "Stage 2 Finished.";
+			$showMenu = true;
 			break;
 		}
 		$crawler = $client->request('GET', $baseUrl.$row->href);
@@ -48,29 +192,54 @@ switch($level){
 			$rtitle = $cnode->filter('.author-info h1')->extract(array("_text"));
 			$title = $rtitle[0][0];
 
-			$runes = $cnode->filter('.rune-wrap > a')->each(function($runes_node){
+			$runes = $cnode->filter('.rune-wrap > a')->each(function($runes_node) use ($entityManager){
 				$runes_cnode = new Crawler($runes_node);
 				$type = $runes_cnode->extract(array('href'));
 				$number = $runes_cnode->filter('.rune-num')->extract(array('_text'));
+				//TODO: Search by link, replace for ID
+				$rune = $entityManager->getRepository('Documents\Rune')->findOneBy(array('link' => $type[0]));
+				if(!$rune){
+					$rune = new Rune();
+					$rune->setLink($type[0]);
+					$entityManager->persist($rune);
+					$entityManager->flush();	
+				}
 				return Array(
-					'link' => $type[0],
+					'id' => $rune->getId(),
 					'qty' => $number[0]
-					);
+				);
 			});
 
-			$spells = $cnode->filter('.build-spells a')->each(function($spells_node){
+			$spells = $cnode->filter('.build-spells a')->each(function($spells_node) use ($entityManager){
 				$spells_cnode = new Crawler($spells_node);
 				$href = $spells_cnode->extract(array('href'));
-				return $href[0];
+
+				$spell = $entityManager->getRepository('Documents\Spell')->findOneBy(array('link' => $href[0]));
+				if(!$spell){
+					$spell = new Spell();
+					$spell->setLink($href[0]);
+					$entityManager->persist($spell);
+					$entityManager->flush();	
+				}
+
+				return $spell->getId();
 			});
-			$bags = $cnode->filter('.item-wrap')->each(function($bags_node){
+			$bags = $cnode->filter('.item-wrap')->each(function($bags_node) use ($entityManager){
 				$bags_cnode = new Crawler($bags_node);
 				$name = $bags_cnode->filter('h2')->text();
-				$items = $bags_cnode->filter('.main-items')->each(function($node){
+				$items = $bags_cnode->filter('.main-items')->each(function($node) use ($entityManager){
 					$cnode = new Crawler($node);
 					$link = $cnode->filter("a")->extract(array('href'));
 
-					return $link[0];
+					$item = $entityManager->getRepository('Documents\Item')->findOneBy(array('link' => $link[0]));
+					if(!$item){
+						$item = new Item();
+						$item->setLink($link[0]);
+						$entityManager->persist($item);
+						$entityManager->flush();	
+					}
+
+					return $item->getId();
 				});
 
 				return Array(
@@ -80,28 +249,45 @@ switch($level){
 			});
 
 
-			$abilities = $cnode->filter('.ability-wrap .ability-row')->each(function($node){
+			$abilities = $cnode->filter('.ability-wrap .ability-row')->each(function($node) use ($entityManager,$hero){
 				$cnode = new Crawler($node);
 				$link = $cnode->filter("a")->extract(array("href"));
-				$levels = $cnode->filter('.ability-check.selected')->each(function($node,$i){
+				$ability = $entityManager->getRepository('Documents\Ability')->findOneBy(array('link' => $link[0]));
+					if(!$ability){
+						$ability = new Ability();
+						$ability->setHero($hero);
+						$ability->setLink($link[0]);
+						$entityManager->persist($ability);
+						$entityManager->flush();	
+					}
+
+				$levels = $cnode->filter('.ability-check.selected')->each(function($node,$i) use ($entityManager){
 					return $node->nodeValue;
 				});
 				return Array(
-					'link' => $link[0],
+					'id' => $ability->getId(),
 					'levels' => $levels
 				);
 			});
 
 
 
-			$mastery = $cnode->filter('.mastery-box a .mastery-skill > div')->each(function($node){
+			$mastery = $cnode->filter('.mastery-box a .mastery-skill > div')->each(function($node) use ($entityManager){
 				$cnode = new Crawler($node->parentNode->parentNode);
 
 				$levels = $cnode->filter("div span")->eq(0)->text();
 				$link = $cnode->extract(array('href'));
 
+				$mastery = $entityManager->getRepository('Documents\Mastery')->findOneBy(array('link' => $link[0]));
+					if(!$mastery){
+						$mastery = new Mastery();
+						$mastery->setLink($link[0]);
+						$entityManager->persist($mastery);
+						$entityManager->flush();	
+					}
+
 				return Array(
-					'link' => $link[0],
+					'id' => $mastery->getId(),
 					'levels' => $levels
 				);
 			});
@@ -145,7 +331,7 @@ switch($level){
 
 		break;
 		//paso 1, analizamos la navegación
-	default:
+	case "1":
 		$target = 2;
 		$page = !isset($_GET['page']) ? 1 : $_GET['page'];	
 
@@ -161,8 +347,15 @@ switch($level){
 		if($page<105){
 			$page = $page+1;
 			$target = 1;
+		}else{
+			$showMenu = true;
+			$message = "Se leyeron todas las listas";
 		}
 
+		break;
+
+	default:
+		$showMenu = true;
 		break;
 }
 
@@ -170,10 +363,27 @@ switch($level){
 ?>
 <html>
 <head>
+<?php if(!$showMenu){ ?>
 <script language="JavaScript">
 window.location = '?level=<?php echo $target; ?>&page=<?php echo $page; ?>'
 </script>
+<?php } ?>
 </head>
 <body>
+
+<?php if($showMenu){ ?>
+<h1>MobaFire Scrapper</h1>
+<?php if($message){ ?>
+<h2 style="color: red;"><?php echo $message; ?></h2>
+<?php } ?>
+<ul>
+	<li><a href="?level=1">Scan Build List</a></li>
+	<li><a href="?level=2">Scan Builds</a></li>
+	<li><a href="?level=3">Scan Items</a></li>
+	<li><a href="?level=4">Scan Runes</a></li>
+	<li><a href="?level=5">Scan Mastery</a></li>
+	<li><a href="?level=5">Scan Abilities</a></li>
+</ul>
+<?php } ?>
 </body>
 </html>

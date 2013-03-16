@@ -22,6 +22,11 @@ class Hero
      */
      public $builds;
 
+    /**
+     * @OneToMany(targetEntity="Ability", mappedBy="hero")
+     */
+     public $abilities;
+
      /** @Column(type="string") **/
     public $link;
 
