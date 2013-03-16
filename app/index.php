@@ -49,7 +49,7 @@ switch($level){
 		$range = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(7)->text());
 		$resist = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(8)->text());
 
-		$image = $crawler->filter('.champ-wrap .champ-icon img')->extract(array('src'));
+		$image = $crawler->filter('.champ-wrap .champ-icon .thumb img')->extract(array('src'));
 
 		$riot_points = trim($crawler->filter('.box-blue .hiliteT')->eq(0)->text());
 		$influence_points = trim($crawler->filter('.box-blue .hiliteT')->eq(1)->text());
