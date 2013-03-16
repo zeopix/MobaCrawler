@@ -65,7 +65,8 @@ switch($level){
 		$hero->setInfluencePoints($influence_points);
 		$hero->setImage($image[0]);
 		$hero->setTags($tags);
-		
+		$hero->setUpdatedAt(new \DateTime());
+		$hero->setCrawled(true);
 		$entityManager->persist($hero);
 		$entityManager->flush();
 
