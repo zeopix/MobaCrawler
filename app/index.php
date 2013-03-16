@@ -22,9 +22,57 @@ $message = false;
 $_log = Array();
 $level = $_GET['level'];
 switch($level){
+
+
+	//Hero
+	case '8':
+		$target = 8;
+		
+		//let's scan abilities
+		$hero = $entityManager->getRepository('Documents\Hero')->findOneBy(array('crawled' => false));
+		$crawler = $client->request('GET', $baseUrl.$hero->link);
+		if(!$hero){
+			$target = 0;
+			$showMenu = true;
+			$message = "Se acabaron los heroes.";
+			break;
+		}
+
+		$health = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(0)->text());
+		$critical = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(1)->text());
+		$mana = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(2)->text());
+		$health_regen = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(3)->text());
+		$speed = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(4)->text());
+		$mana_regen = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(5)->text());
+		$armor = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(6)->text());
+		$range = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(7)->text());
+		$resist = trim($crawler->filter('.box-blue table tr .hiliteG')->eq(8)->text());
+
+		$riot_points = trim($crawler->filter('.box-blue .hiliteT')->eq(0)->text());
+		$influence_points = trim($crawler->filter('.box-blue .hiliteT')->eq(1)->text());
+		$tags = trim($crawler->filter('h1.champ-name span')->text());
+
+		$hero->setHealth($health);
+		$hero->setCritical($critical);
+		$hero->setMana($mana);
+		$hero->setHealthRegen($health_regen);
+		$hero->setSpeed($speed);
+		$hero->setManaRegen($mana_regen);
+		$hero->setArmor($armor);
+		$hero->setRange($range);
+		$hero->setResist($resist);
+		$hero->setRiotPoints($riot_points);
+		$hero->setInfluencePoints($influence_points);
+		$hero->setImage($image[0]);
+		$hero->setTags($tags);
+		
+		$entityManager->persist($hero);
+		$entityManager->flush();
+
+		break;
 	//Spells
 	case '7':
-		$target = 5;
+		$target = 7;
 		//let's scan abilities
 		$spell = $entityManager->getRepository('Documents\Spell')->findOneBy(array('crawled' => false));
 		$crawler = $client->request('GET', $baseUrl.$spell->link);
@@ -45,15 +93,13 @@ switch($level){
 		$spell->setCrawled(true);
 		$spell->setDescription($description);
 
-		die(print_r($description));
-
-		$entityManager->persist($ability);
+		$entityManager->persist($spell);
 		$entityManager->flush();
 
 		break;
 	//Abilities
 	case '6':
-		$target = 5;
+		$target = 6;
 		//let's scan abilities
 		$ability = $entityManager->getRepository('Documents\Ability')->findOneBy(array('crawled' => false));
 		$crawler = $client->request('GET', $baseUrl.$ability->link);
@@ -320,7 +366,7 @@ switch($level){
 			$build->setBags($bags);
 			$build->setStats($stats);
 			$build->setSpells($spells);
-			$build->setLink($row->path);
+			$build->setLink($row->href);
 			$build->setRunes($runes);
 			$build->setCrawledAt(new \DateTime());
 
