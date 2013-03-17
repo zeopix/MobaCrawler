@@ -155,13 +155,14 @@ switch($level){
 	case '4':
 		$target = 4;
 		//let's scan runes
-		$item = $entityManager->getRepository('Documents\Rune')->findOneBy(array('crawled' => true));
+		$item = $entityManager->getRepository('Documents\Rune')->findOneBy(array('crawled' => false));
 		if(!$item){
 			$target = 0;
 			$showMenu = true;
 			$message = "Se acabaron las runas.";
 			break;
 		}
+
 		$crawler = $client->request('GET', $baseUrl.$item->link);
 		$title = trim($crawler->filter('.col-left h1')->eq(0)->text());
 		if($title == "The page you are looking for is cowering in a corner somewhere"){
@@ -176,13 +177,13 @@ switch($level){
 			$image = $crawler->filter('.item-info-image')->extract(array('src'));
 			$item->setImage($image[0]);
 			$item->setUpdatedAt(new \DateTime());
-			$item->setCrawled(false);
+			$item->setCrawled(true);
 			$item->setPrice($price);
 			$item->setName($name);
 			$item->setDescription($description);
 		}
-			$entityManager->persist($item);
-			$entityManager->flush();
+		$entityManager->persist($item);
+		$entityManager->flush();
 		
 		break;
 
