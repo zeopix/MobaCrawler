@@ -87,6 +87,7 @@ switch($level){
 			$message = "Se acabaron las spells.";
 			break;
 		}
+		die($spell->link);
 		$name = $crawler->filter('.ability-info h2')->text();
 		$level = $crawler->filter('.ability-info .hiliteG')->text();
 		$rawDescription = $crawler->filter('.ability-info')->text();
@@ -154,7 +155,7 @@ switch($level){
 	case '4':
 		$target = 4;
 		//let's scan runes
-		$item = $entityManager->getRepository('Documents\Rune')->findOneBy(array('crawled' => false));
+		$item = $entityManager->getRepository('Documents\Rune')->findOneBy(array('crawled' => true));
 		if(!$item){
 			$target = 0;
 			$showMenu = true;
@@ -175,8 +176,9 @@ switch($level){
 			$image = $crawler->filter('.item-info-image')->extract(array('src'));
 			$item->setImage($image[0]);
 			$item->setUpdatedAt(new \DateTime());
-			$item->setCrawled(true);
+			$item->setCrawled(false);
 			$item->setPrice($price);
+			$item->setName($name);
 			$item->setDescription($description);
 		}
 			$entityManager->persist($item);
@@ -224,8 +226,8 @@ switch($level){
 			break;
 		}
 		$crawler = $client->request('GET', $baseUrl.$row->href);
-		
-		$crawler->filter(".build-box")->each(function($node,$i) use ($row,$entityManager) {
+		$title = $crawler->filter('.author-info h1')->text();
+		$crawler->filter(".build-box")->each(function($node,$i) use ($row,$entityManager,$title) {
 			$cnode = new Crawler($node);
 
 			//Copy Hero
@@ -241,10 +243,7 @@ switch($level){
 				$entityManager->persist($hero);
 				$entityManager->flush();
 			}
-
-
-			$rtitle = $cnode->filter('.author-info h1')->extract(array("_text"));
-			$title = $rtitle[0][0];
+			
 
 			$runes = $cnode->filter('.rune-wrap > a')->each(function($runes_node) use ($entityManager){
 				$runes_cnode = new Crawler($runes_node);
@@ -363,6 +362,7 @@ switch($level){
 				);
 			});
 
+			
 
 			$build = new Build();
 
